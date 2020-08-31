@@ -1,11 +1,17 @@
+
+const WIDTH = 800;
+const HEIGHT = 600;
+const Y_GRAVITY = 300;
+const ENEMY_VELOCITY = 50;
+
 let config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: WIDTH,
+    height: HEIGHT,
     physics : {
       default : 'arcade',
       arcade : {
-        gravity : { y : 300},
+        gravity : { y : Y_GRAVITY },
         debug : false
       }
     },
@@ -33,6 +39,9 @@ let platforms;
 let player;
 let score = 0;
 let scoreText;
+let bombs;
+let bomb;
+let stars;
 
 function create () {
 
@@ -90,6 +99,7 @@ function create () {
   this.physics.add.collider(stars, platforms);
 
   this.physics.add.overlap(player, stars, collectStar, null, this);
+
   scoreText = this.add.text(16, 16, 'Score : 0', {
     fontSize : '32px', fill: '#000'
   });
@@ -99,31 +109,49 @@ function create () {
   this.physics.add.collider(bombs, platforms);
 
   this.physics.add.collider(player, bombs, hitBomb, null, this);
+  
+  let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+  console.log(player.x)
+  bomb = bombs.create(x, 16, 'bomb');
+  //this.physics.moveToObject(bomb, player, 150)
+
 }
 
 function update () {
+  startPlayerMovement();
+  if (bomb.body.touching.left){
+    bomb.setVelocityX(160);
+    this.physics.moveToObject(bomb, player, ENEMY_VELOCITY)
+  }
+  else if (bomb.body.touching.right){
+    bomb.setVelocityX(-160);
+    this.physics.moveToObject(bomb, player, ENEMY_VELOCITY)
+  }
+  else{
+    this.physics.moveToObject(bomb, player, ENEMY_VELOCITY)
+  }
+}
 
-  if (cursors.left.isDown){
+function startPlayerMovement(){
+  if (cursors.left.isDown) {
     player.setVelocityX(-160);
     player.anims.play('left', true);
   }
-  else if (cursors.right.isDown){
+  else if (cursors.right.isDown) {
     player.setVelocityX(160);
     player.anims.play("right", true);
   }
-  else{
+  else {
     player.setVelocityX(0);
     player.anims.play('turn');
   }
-  if (cursors.up.isDown && player.body.touching.down)
-  {
+  if (cursors.up.isDown && player.body.touching.down) {
     player.setVelocityY(-500)
   }
 }
 
 function collectStar (player, star) {
   star.disableBody(true, true);
-
   score += 10;
   scoreText.setText('Score: ' + score);
 
@@ -131,13 +159,6 @@ function collectStar (player, star) {
     stars.children.iterate(function(child) {
       child.enableBody(true, child.x, 0, true, true);
     });
-
-    let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-
-    let bomb = bombs.create(x, 16, 'bomb');
-    bomb.setBounce(1);
-    bomb.setCollideWorldBounds(true);
-    bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
   }
 }
 
@@ -145,8 +166,23 @@ function hitBomb (player, bomb) {
   this.physics.pause();
 
   player.setTint(0xff0000);
-
   player.anims.play('turn');
 
-  gameOver = true;
+  const GAMEOVER_FEEDBACK_TEXT = "GAMEOVER YOU SUCK! MAYBE CONSIDER NOT SUCKING?"
+  const X_OFFSET = 220;
+  const Y_OFFSET = 20;
+  const CENTER_X = (WIDTH / 2) - (GAMEOVER_FEEDBACK_TEXT.length / 2) - X_OFFSET
+  const CENTER_Y = (HEIGHT / 2) - (GAMEOVER_FEEDBACK_TEXT.length / 2) + Y_OFFSET
+  console.log(this);
+  this.add.text(CENTER_X, CENTER_Y, GAMEOVER_FEEDBACK_TEXT, {
+    fontSize: '18px', fill: '#000'
+  })
+  let scene = this.scene
+  setTimeout(function () {
+    scene.restart();
+  }, 2500)
+}
+
+function initGameoverFeedback(){
+
 }
