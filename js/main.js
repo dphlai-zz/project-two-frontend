@@ -109,12 +109,8 @@ function create () {
   this.physics.add.collider(bombs, platforms);
 
   this.physics.add.collider(player, bombs, hitBomb, null, this);
-  
-  let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-  console.log(player.x)
-  bomb = bombs.create(x, 16, 'bomb');
-  //this.physics.moveToObject(bomb, player, 150)
 
+  dropBomb();
 }
 
 function update () {
@@ -159,6 +155,8 @@ function collectStar (player, star) {
     stars.children.iterate(function(child) {
       child.enableBody(true, child.x, 0, true, true);
     });
+
+    dropBomb();
   }
 }
 
@@ -179,10 +177,12 @@ function hitBomb (player, bomb) {
   })
   let scene = this.scene
   setTimeout(function () {
+    score = 0;
     scene.restart();
   }, 2500)
 }
 
-function initGameoverFeedback(){
-
+function dropBomb(){
+  let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+  bomb = bombs.create(x, 16, 'bomb');
 }
